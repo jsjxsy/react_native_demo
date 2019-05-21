@@ -23,4 +23,9 @@ public class ExampleInstrumentedTest {
 
         assertEquals("demo.jinkegroup.com.hello", appContext.getPackageName());
     }
+
+    @Test
+    public void testMerge() {
+
+    }
 }

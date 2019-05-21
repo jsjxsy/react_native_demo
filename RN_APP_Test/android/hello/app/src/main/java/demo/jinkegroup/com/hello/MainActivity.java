@@ -1,14 +1,18 @@
 package demo.jinkegroup.com.hello;
 
+import android.Manifest;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.Uri;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -19,15 +23,16 @@ import android.widget.Toast;
 
 import com.wpt.bsdiff.BSDiff;
 import com.wpt.rn.activity.SingleActivity;
-import com.wpt.rn.constants.FileConstant;
 import com.wpt.rn.update.HotUpdate;
+
+import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
 
 
     private long mDownLoadId;
     private CompleteReceiver localReceiver;
-
+    final private int REQUEST_CODE_ASK_PERMISSIONS = 123;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,6 +52,26 @@ public class MainActivity extends AppCompatActivity {
         });
         registerReceiver();
 
+        //动态请求的权限数组
+        String[] permissions =new String[]{
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE};
+//测试
+        Log.i("checkSelfPermission", "--------------------------------"+permissions.length);
+        for (String permission : permissions) {
+            int isGranted = ContextCompat.checkSelfPermission(this, permission);
+            if (isGranted == PackageManager.PERMISSION_GRANTED) {
+                //已授权
+
+                Log.i("checkSelfPermission","checkSelfPermission  已授权");
+            }else if(isGranted == PackageManager.PERMISSION_DENIED){
+                ActivityCompat.requestPermissions(this, permissions, REQUEST_CODE_ASK_PERMISSIONS);
+                //未授权的
+//                Log.i("checkSelfPermission", PermissionUtils.getInstance().getPermissionName(permission)+ ":   未授权");
+            }
+        }
+        Log.i("checkSelfPermission", "--------------------------------"+permissions.length);
+
     }
 
     @Override
@@ -65,8 +90,15 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            int result = BSDiff.patch("1","2","3");
-            Log.e("xsy","result="+result);
+            String oldApkPath = Environment.getExternalStorageDirectory().toString()
+                    + File.separator + "com.weipaitang.wpt" + File.separator + "1.txt";
+            String newApkPath = Environment.getExternalStorageDirectory().toString()
+                    + File.separator + "com.weipaitang.wpt" + File.separator + "2.txt";
+            String patchPath = Environment.getExternalStorageDirectory().toString()
+                    + File.separator + "com.weipaitang.wpt" + File.separator + "3.patch";
+
+            int result = BSDiff.patch(oldApkPath, newApkPath, patchPath);
+            Log.e("xsy", "result=" + result);
             //checkVersion();
             return true;
         }
@@ -80,17 +112,35 @@ public class MainActivity extends AppCompatActivity {
      */
     private void registerReceiver() {
         localReceiver = new CompleteReceiver();
-        registerReceiver(localReceiver,new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+        registerReceiver(localReceiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
     }
 
     public class CompleteReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            long completeId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID,-1);
-            if(completeId == mDownLoadId) {
+            long completeId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
+            if (completeId == mDownLoadId) {
                 HotUpdate.handleZIP(getApplicationContext());
             }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CODE_ASK_PERMISSIONS:
+
+                if (grantResults != null && grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Permission Granted
+                } else {
+                    // Permission Denied
+                    Toast.makeText(MainActivity.this, "WRITE_CONTACTS Denied", Toast.LENGTH_SHORT)
+                            .show();
+                }
+                break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
 

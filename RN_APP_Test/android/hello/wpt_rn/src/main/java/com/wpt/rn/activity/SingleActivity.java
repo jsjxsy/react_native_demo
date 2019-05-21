@@ -42,24 +42,25 @@ public class SingleActivity extends Activity implements DefaultHardwareBackBtnHa
         super.onCreate(savedInstanceState);
 
         mReactRootView = new ReactRootView(this);
-        mReactInstanceManager = ReactInstanceManager.builder()
-                .setApplication(getApplication())
-                .setCurrentActivity(this)
-                .setBundleAssetName("index.bundle")
-//                .setBundleAssetName("index_0_0_5.android_5.jsbundle")
-//                .setJSMainModulePath("index_0_0_5")
-                .setJSMainModulePath("index")
-                .addPackage(new MainReactPackage())
-                .addPackage(new CustomPackage())//注意：必须加入否则报错
-                .addPackage(new RNGestureHandlerPackage())
-                .addPackage(new SvgPackage())
-                .setUseDeveloperSupport(BuildConfig.DEBUG)
-                .setInitialLifecycleState(LifecycleState.RESUMED)
-                .build();
+//        mReactInstanceManager = ReactInstanceManager.builder()
+//                .setApplication(getApplication())
+//                .setCurrentActivity(this)
+//                .setBundleAssetName("index.bundle")
+////                .setBundleAssetName("index_0_0_5.android_5.jsbundle")
+////                .setJSMainModulePath("index_0_0_5")
+//                .setJSMainModulePath("index")
+//                .addPackage(new MainReactPackage())
+//                .addPackage(new CustomPackage())//注意：必须加入否则报错
+//                .addPackage(new RNGestureHandlerPackage())
+//                .addPackage(new SvgPackage())
+//                .setUseDeveloperSupport(BuildConfig.DEBUG)
+//                .setInitialLifecycleState(LifecycleState.RESUMED)
+//                .build();
         // 注意这里的MyReactNativeApp必须对应“index.js”中的
         // “AppRegistry.registerComponent()”的第一个参数
         Bundle initialProps = new Bundle();
         initialProps.putString("router", "/promotion");
+        mReactInstanceManager = MainApplication.getInstance().getReactInstanceManager();
         mReactRootView.startReactApplication(mReactInstanceManager, "wptNative", initialProps);
 
         setContentView(mReactRootView);
@@ -90,27 +91,6 @@ public class SingleActivity extends Activity implements DefaultHardwareBackBtnHa
         }
         mReactInstanceManager.onActivityResult(this, requestCode, resultCode, data);
     }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-//        if (mReactInstanceManager != null) {
-//
-//            if(mReactInstanceManager.getCurrentReactContext() == null){
-//                Log.e("xsy","is null");
-//            }else{
-//                Log.e("xsy","is not null");
-//            }
-////                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-////                    .emit("ViewWillAppearEmitter", null);
-//        }
-//        if (reactContext.hasActiveCatalystInstance()){
-//            NavigationModule.onStart(reactContext);
-//
-//        }
-
-    }
-
 
     @Override
     protected void onPause() {
